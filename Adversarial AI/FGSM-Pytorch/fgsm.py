@@ -60,28 +60,29 @@ img.unsqueeze_(0);  # Inplace operation which inserts dimension of size 1 at fir
 # Resnet50 Model
 resnet=resnet50(pretrained=True)
 
+from torch.autograd import Variable
+t_pred=388    #Label for giant panda class
+t_pred = Variable(torch.LongTensor([t_pred]), requires_grad=False)
 
 # Function which takes in the test image , perform operations to make it perturbed and then finds the wrongly predicted class
 def fgsm(img, eps):
   img.requires_grad=True
-  resnet.eval()    #Evaluation
-  pred = resnet(img) #Prediction
-  tens=red.argmax(dim=1)
-  true_pred=label_pred(tens) # True predicted label of the test image
+  resnet.eval()
+  pred = resnet(img) 
+  tens=pred.argmax(dim=1)
+  true_pred=label_pred(tens)[0:18]
   resnet.zero_grad()
-  cost = loss(pred, target)
-  cost.backward()
-  # Performing FGSM operations
+  cost = loss(pred, t_pred)
+  cost.backward()  
   attack = img + eps*img.grad.sign()
   attack = torch.clamp(attack, 0, 1)
-  pred2=resnet(attack) #Predicting
-  tensor=pred2.argmax(dim=1)
-  false_pred=label_pred(tensor)             # Falsely predicted label
-  # Following lines allows us to print the perturbed image  
+  
   attack1=attack.squeeze(0)
   attack1=attack1[-1, :, :]
   attack1=attack1.detach().numpy()
-  # Displaying the image along with its predicted label
+  pred2=resnet(attack)
+  tensor=pred2.argmax(dim=1)
+  false_pred=label_pred(tensor)
   display(img1,attack1,true_pred,false_pred)
 
 
