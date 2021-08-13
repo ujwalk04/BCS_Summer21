@@ -13,21 +13,8 @@ from torchvision import transforms
 from torch.utils import data
 import matplotlib.pyplot as plt
 from torchvision import transforms
+from torch.autograd import Variable
 from PIL import Image
-
-# Necessary transformations for our image
-transform = transforms.Compose([transforms.Resize((224, 224)),  # necessary transformations applied to the input image to make it the same as input format of our model 
-                                transforms.ToTensor(), 
-                                transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])])
-
-
-# Parsing values
-parser = argparse.ArgumentParser()
-parser.add_argument('--img_src', 
-     default = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1024px-Grosser_Panda.JPG', help = 'img src')
-parser.add_argument('--eps', type = float,
-     default = 0.5, help = 'epsilon')
-args, unknown = parser.parse_known_args()
 
 # Function to display test image along with its perturbed form
 def display(img1,img2,label1,label2):
@@ -48,24 +35,11 @@ def label_pred(tensor):
   pred = labels[idx]
   return pred
 
-
-# Retrieving Test Image 
-urllib.request.urlretrieve(args.img_src, 'image')
-img1 = Image.open("image")
-img1 = img1.resize((224,224))  # Resizing image into size of (224,224)
-plt.imshow(img1)
-img=transform(img1)  # transforming images
-img.unsqueeze_(0);  # Inplace operation which inserts dimension of size 1 at first position of tensor
-
-# Resnet50 Model
-resnet=resnet50(pretrained=True)
-
-from torch.autograd import Variable
-t_pred=388    #Label for giant panda class
-t_pred = Variable(torch.LongTensor([t_pred]), requires_grad=False)
-
 # Function which takes in the test image , perform operations to make it perturbed and then finds the wrongly predicted class
-def fgsm(img, eps):
+def fgsm(img, eps , t_pred):
+ 
+  
+  t_pred = Variable(torch.LongTensor([t_pred]), requires_grad=False)
   img.requires_grad=True
   resnet.eval()
   pred = resnet(img) 
@@ -85,10 +59,36 @@ def fgsm(img, eps):
   false_pred=label_pred(tensor)
   display(img1,attack1,true_pred,false_pred)
 
+# Necessary transformations for our image
+transform = transforms.Compose([transforms.Resize((224, 224)),  # necessary transformations applied to the input image to make it the same as input format of our model 
+                                transforms.ToTensor(), 
+                                transforms.Normalize(mean=[0.5,0.5,0.5], std=[0.5,0.5,0.5])])
 
+# Parsing values
+parser = argparse.ArgumentParser()
+parser.add_argument('--img_src', 
+     default = 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Grosser_Panda.JPG/1024px-Grosser_Panda.JPG', help = 'img src')
+parser.add_argument('--eps', type = float,
+     default = 0.5, help = 'epsilon')
+parser.add_argument('--true_prediction',type=int , default=388,help='True predicted label from https://savan77.github.io/blog/labels.json ')
+args, unknown = parser.parse_known_args()
 # Executing the function
 eps=args.eps
-fgsm( img,eps ) 
+t_pred=args.true_prediction
+# Retrieving Test Image 
+urllib.request.urlretrieve(args.img_src, 'image')
+img1 = Image.open("image")
+img1 = img1.resize((224,224))  # Resizing image into size of (224,224)
+plt.imshow(img1)
+img=transform(img1)  # transforming images
+img.unsqueeze_(0);  # Inplace operation which inserts dimension of size 1 at first position of tensor
+
+# Resnet50 Model
+resnet=resnet50(pretrained=True)
+
+loss = nn.CrossEntropyLoss()
+
+fgsm( img,eps,t_pred ) 
 
 
 
