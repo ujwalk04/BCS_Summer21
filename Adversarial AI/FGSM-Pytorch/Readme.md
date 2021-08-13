@@ -7,12 +7,14 @@ python3 fgsm.py
 ***
 ## Help Log
 ```
-usage: fgsm.py [-h] [--img_src IMAGE SOURCE] [--eps Epsilon]
+usage: fgsm.py [-h] [--img_src IMG_SRC] [--eps EPS] 
+               [--true_prediction TRUE_PREDICTION]
                                
 optional arguments:
   -h, --help         show this help message and exit
   --img_src IMG_SRC  img src
-  --eps EPS          eps
+  --eps EPS          epsilon
+  --true_prediction  True predicted label from https://savan77.github.io/blog/labels.json
   
 ```
 ***
