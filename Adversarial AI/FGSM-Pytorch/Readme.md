@@ -2,7 +2,7 @@
 ***
 ## Usage
 ```
-python3 fgsm.py
+$ python3 fgsm.py
 ```
 ***
 ## Help Log
