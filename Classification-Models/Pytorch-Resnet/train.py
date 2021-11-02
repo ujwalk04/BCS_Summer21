@@ -7,7 +7,8 @@ from torchvision import datasets
 import torch.nn.functional as Fun
 import matplotlib.pyplot as plt
 import argparse
-
+from model import normal_block,resnet,side_block
+from dataloader import ddata
 
 ###################################################################################
 # Parsing all arguments
